@@ -149,20 +149,6 @@ We fine-tuned `Qwen/Qwen3-Embedding-0.6B` as a query encoder against **frozen pr
 
 ---
 
-## Results
-
-All scores are on the blind evaluation sets (Codabench).
-
-| Configuration | Composite | nDCG@20 | CatDiv | LexDiv | LLM-Judge |
-|--------------|-----------|---------|--------|--------|-----------|
-| **This repo — multi-source + LambdaRank + Qwen3-8B gen (Blind A)** | **0.5296** | **0.4124** | 0.0320 | 0.7273 | **4.30** |
-| Multi-source + planner cache + Qwen3-8B gen | 0.5261 | 0.3258 | 0.0314 | 0.7504 | 4.80 |
-| LLM planner + metadata filter + flash_attn | 0.4886 | 0.2833 | 0.0314 | 0.7385 | 4.60 |
-| Multi-source + Qwen3 dense + I2I + shortcuts | 0.4270 | 0.2291 | 0.0315 | 0.7304 | 4.15 |
-| Qwen3-8B thinking (baseline) | 0.4147 | 0.1689 | 0.1064 | 0.7584 | 4.25 |
-
----
-
 ## Datasets
 
 All datasets are from the [TalkPlay HuggingFace collection](https://huggingface.co/collections/talkpl-ai/talkplay-data-challenge):
@@ -263,35 +249,68 @@ Checkpoints saved to `./cache/finetuned_biencoder/`, best checkpoint to `./cache
 
 ```
 mcrs/
-├── crs_baseline.py            # Main CRS class wiring all components
-├── retrieval_modules/
-│   ├── bm25.py                # Weighted BM25
-│   ├── bert.py                # Dense retrieval (BGE)
-│   ├── qwen3_dense.py         # Zero-shot Qwen3 dense retrieval
-│   ├── finetuned_dense.py     # Fine-tuned Qwen3-0.6B retrieval (experiment)
-│   ├── user_to_item.py        # CF/BPR user-to-item
-│   ├── item_to_item.py        # Multimodal I2I expansion
-│   ├── session_cooccurrence.py
-│   ├── train_thought_bm25.py
-│   └── multi_source.py        # Base RRF fusion (BM25+BGE+BPR)
+├── crs_baseline.py                        # Main CRS class wiring all components
+├── crs_two_tower.py                       # Two-tower variant
+├── db_item/
+│   └── music_catalog.py                   # Track metadata access
+├── db_user/
+│   └── user_profile.py                    # User profile access
 ├── lm_modules/
-│   ├── qwen3.py               # Qwen3-8B: planner + response generator
-│   └── llama.py               # Llama-3.2-1B (baseline)
+│   ├── qwen3.py                           # Qwen3-8B: planner + response generator
+│   └── llama.py                           # Llama-3.2-1B (baseline)
 ├── reranker_modules/
-│   ├── two_tower.py           # Two-tower DCN reranker
+│   ├── two_tower.py                       # Two-tower DCN reranker
 │   └── embedding.py
-└── db_item / db_user          # Catalog and user profile access
+├── retrieval_modules/
+│   ├── bm25.py                            # Weighted BM25
+│   ├── bert.py                            # Dense retrieval (BGE)
+│   ├── qwen3_dense.py                     # Zero-shot Qwen3-Embedding dense retrieval
+│   ├── finetuned_dense.py                 # Fine-tuned Qwen3-0.6B retrieval (experiment)
+│   ├── user_to_item.py                    # CF/BPR user-to-item
+│   ├── item_to_item.py                    # Multimodal I2I expansion
+│   ├── hybrid.py                          # BM25 + dense hybrid
+│   ├── session_cooccurrence.py            # Session co-occurrence signals
+│   ├── train_thought_bm25.py              # BM25 over training rationales
+│   └── multi_source.py                    # RRF fusion of BM25+BGE+BPR
+└── system_prompts/
+    ├── query_planning.txt
+    ├── response_generation.txt
+    ├── template_discovery.txt
+    ├── template_expert.txt
+    ├── template_conversational.txt
+    ├── personalization.txt
+    └── roleplay.txt
 
 scripts/
-├── train_lambdarank.py        # LambdaRank training (LightGBM)
-├── finetune_biencoder.py      # Qwen3-0.6B bi-encoder fine-tuning (experiment)
-├── precompute_planner.py      # Cache Qwen3-8B planner outputs
-└── evaluate_dev_ndcg.py       # Dev set evaluation
+├── train_lambdarank.py                    # LambdaRank training (LightGBM)
+├── finetune_biencoder.py                  # Qwen3-0.6B bi-encoder fine-tuning (experiment)
+├── precompute_planner.py                  # Cache Qwen3-8B planner outputs
+├── evaluate_dev_ndcg.py                   # Dev set nDCG evaluation
+├── evaluate_dev_ndcg_filtered.py
+├── analyze_recall_failures.py
+├── compare_merge_strategies.py
+├── run_dev_eval_suite.py
+├── debug_retrieval_rerank.py
+├── filter_blind_output.py
+├── test_generation.py
+├── capture_generation_examples.py
+├── capture_llm_inputs.py
+├── capture_llm_inputs_by_specificity.py
+├── combine_dev_predictions_by_specificity.py
+├── create_mini_devset.py
+├── runpod_init.sh                         # RunPod bootstrap script
+└── setup_pod.sh
 
-config/                        # YAML inference + training configs
-run_inference_devset.py        # Dev set inference entry point
-run_inference_blindset.py      # Blind set inference entry point
-train_two_tower_reranker.py    # Two-tower training entry point
+config/                                    # YAML inference + training configs
+├── qwen3_8b_multi_source_devset.yaml      # Primary dev config
+├── qwen3_8b_multi_source_blindset_A.yaml  # Blind A config
+├── lambdarank_training.yaml               # LambdaRank training config
+└── ...                                    # Additional configs
+
+run_inference_devset.py                    # Dev set inference entry point
+run_inference_blindset.py                  # Blind set inference entry point
+train_two_tower_reranker.py               # Two-tower training entry point
+pyproject.toml                            # Package definition and dependencies
 ```
 
 ---
