@@ -2,10 +2,17 @@
 
 A two-stage conversational music recommender built for the [ACM RecSys Challenge 2026 (TalkPlay)](https://nlp4musa.github.io/music-crs-challenge/). The system combines multi-source candidate retrieval with LambdaRank reranking and uses Qwen3-8B for structured query planning and natural-language response generation.
 
-**Best results on the blind benchmark:**
-- **nDCG@20: 0.4288** (LambdaRank reranking)
-- **Composite score: 0.5261** (0.50×nDCG + 0.10×CatalogDiversity + 0.10×LexicalDiversity + 0.30×LLM-Judge)
-- **LLM-Judge: 4.80 / 5.0**
+**Best results on the blind benchmarks:**
+
+| Metric | Blind A | Blind B |
+|--------|---------|---------|
+| Composite score | **0.5296** | **0.4800** |
+| nDCG@20 | 0.4124 | — |
+| Catalog Diversity | 0.0320 | — |
+| Lexical Diversity | 0.7273 | — |
+| LLM-Judge | 4.30 / 5.0 | — |
+
+Composite = 0.50×nDCG@20 + 0.10×CatalogDiversity + 0.10×LexicalDiversity + 0.30×LLM-Judge
 
 ---
 
@@ -144,13 +151,15 @@ We fine-tuned `Qwen/Qwen3-Embedding-0.6B` as a query encoder against **frozen pr
 
 ## Results
 
-| Configuration | Composite | nDCG@20 | LLM-Judge |
-|--------------|-----------|---------|-----------|
-| **Multi-source + planner cache + LambdaRank** | — | **0.4288** | — |
-| **Multi-source + planner cache + full gen** | **0.5261** | 0.3258 | **4.80** |
-| Multi-source + Qwen3 dense + I2I + shortcuts | 0.4270 | 0.2291 | 4.15 |
-| LLM planner + metadata filter + flash_attn | 0.4886 | 0.2833 | 4.60 |
-| Qwen3-8B thinking (baseline) | 0.4147 | 0.1689 | 4.25 |
+All scores are on the blind evaluation sets (Codabench).
+
+| Configuration | Composite | nDCG@20 | CatDiv | LexDiv | LLM-Judge |
+|--------------|-----------|---------|--------|--------|-----------|
+| **This repo — multi-source + LambdaRank + Qwen3-8B gen (Blind A)** | **0.5296** | **0.4124** | 0.0320 | 0.7273 | **4.30** |
+| Multi-source + planner cache + Qwen3-8B gen | 0.5261 | 0.3258 | 0.0314 | 0.7504 | 4.80 |
+| LLM planner + metadata filter + flash_attn | 0.4886 | 0.2833 | 0.0314 | 0.7385 | 4.60 |
+| Multi-source + Qwen3 dense + I2I + shortcuts | 0.4270 | 0.2291 | 0.0315 | 0.7304 | 4.15 |
+| Qwen3-8B thinking (baseline) | 0.4147 | 0.1689 | 0.1064 | 0.7584 | 4.25 |
 
 ---
 
