@@ -286,20 +286,7 @@ scripts/
 ├── finetune_biencoder.py                  # Qwen3-0.6B bi-encoder fine-tuning (experiment)
 ├── precompute_planner.py                  # Cache Qwen3-8B planner outputs
 ├── evaluate_dev_ndcg.py                   # Dev set nDCG evaluation
-├── evaluate_dev_ndcg_filtered.py
-├── analyze_recall_failures.py
-├── compare_merge_strategies.py
-├── run_dev_eval_suite.py
-├── debug_retrieval_rerank.py
-├── filter_blind_output.py
-├── test_generation.py
-├── capture_generation_examples.py
-├── capture_llm_inputs.py
-├── capture_llm_inputs_by_specificity.py
-├── combine_dev_predictions_by_specificity.py
-├── create_mini_devset.py
-├── runpod_init.sh                         # RunPod bootstrap script
-└── setup_pod.sh
+└── runpod_init.sh                         # RunPod bootstrap script
 
 config/                                    # YAML inference + training configs
 ├── qwen3_8b_multi_source_devset.yaml      # Primary dev config
