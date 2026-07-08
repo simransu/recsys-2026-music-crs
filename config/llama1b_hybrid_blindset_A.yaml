@@ -1,0 +1,24 @@
+lm_type: "meta-llama/Llama-3.2-1B-Instruct"
+retrieval_type: "hybrid"
+test_dataset_name: "talkpl-ai/TalkPlayData-Challenge-Dataset"
+item_db_name: "talkpl-ai/TalkPlayData-Challenge-Track-Metadata"
+user_db_name: "talkpl-ai/TalkPlayData-Challenge-User-Metadata"
+track_split_types:
+  - "all_tracks"
+user_split_types:
+  - "all_users"
+corpus_types:
+  - "track_name"
+  - "artist_name"
+  - "album_name"
+  - "release_date"
+  - "tag_list"
+cache_dir: "./cache"
+device: "cuda"
+attn_implementation: "flash_attention_2"
+retrieval_bm25_topk: 200
+retrieval_bert_topk: 80
+retrieval_final_topk: 100
+retrieval_rrf_k: 80
+retrieval_bm25_weight: 0.85
+retrieval_bert_weight: 0.15

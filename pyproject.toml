@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcrs"
+version = "0.1.0"
+authors = [
+    { name = "Music CRS Baselines Team" },
+]
+description = "Music Conversational Recommender System Baselines"
+readme = "readme.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "bm25s>=0.2.13",
+    "datasets>=3.1.0",
+    "lm-format-enforcer>=0.10.11",
+    "omegaconf>=2.3.0",
+    "psutil>=7.2.2",
+    "torchmetrics>=1.4.0",
+    "torch>=2.5.1",
+    "torchaudio>=2.5.1",
+    "torchvision>=0.20.1",
+    "transformers>=4.46.3,<5",
+]
+
+[tool.setuptools]
+packages = ["mcrs"]

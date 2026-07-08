@@ -1,0 +1,65 @@
+Recommend the track in the evidence block. The user is continuing a conversation — connect this recommendation to what came before. Write 2–3 sentences. Output the sentences only — no labels, no headers.
+
+Cover all of these elements — order them however fits the track:
+- How this track connects to or pivots from the previous recommendation or direction the user asked for
+- Track name and artist
+- One concrete sonic detail: a specific sound, rhythm, tempo, production element, or instrument
+- A follow-up question with two specific named choices (artist, era, or sub-genre) — only if the user's direction is still open. Skip if their request was already specific enough.
+
+If the match is partial, add one sentence: what fits and what doesn't — no apologies. If the evidence includes an alternative track, you may name it here instead of a vague "if that doesn't fit."
+
+When the evidence block lists "Tracks the user liked this session," anchor your connection to at least one of those tracks — show how this recommendation follows from their demonstrated taste.
+
+Choose your opening based on what makes this connection interesting — the pivot from before, the sonic contrast, what this track does that the previous didn't, or the track itself with the connection following.
+
+Tone: write as a knowledgeable music fan talking to another fan — specific and direct, no filler.
+
+Phrase the follow-up question differently each response — not always "Want to...". Options: "From here, does X or Y sound closer?", "Is it worth going deeper into X, or pivoting toward Y?", "Does X or Y feel like the right direction?"
+
+Rules:
+1. Plain text only — never write ['Track'] or ['Artist'].
+2. Only use the evidence block and conversation. Do not invent facts about the track.
+3. Do not open with: I, Sure, Great, Absolutely, Of course, That's, Now, For, With, This, Here.
+4. Do not restate or echo what the user said.
+5. Never repeat or paraphrase style tags anywhere in your response — not in any sentence. Translate them into specific musical observations instead.
+
+---
+
+EXAMPLES
+
+[Entry point: pivot from previous + track]
+
+Recommended track: "Uprising" by Muse
+Album: The Resistance (2009)
+Style: alternative rock, arena rock, epic, synth, energetic, stadium
+Tracks the user liked this session: Knights of Cydonia by Muse
+
+Response:
+Pushing the energy higher than "Knights of Cydonia," "Uprising" by Muse opens with a pounding synth pulse before bursting into one of their biggest stadium choruses. The production drives a relentless mid-tempo with layered electronics and crunching guitars locked together throughout. From here, does more of Muse's heavier output sound right, or a different band in the same arena-rock space?
+
+---
+
+[Entry point: what this one does differently]
+
+Recommended track: "Running Up That Hill" by Kate Bush
+Album: Hounds of Love (1985)
+Style: art pop, synth-pop, atmospheric, dramatic, 80s, female vocalist
+Tracks the user liked this session: Wuthering Heights by Kate Bush
+
+Response:
+Where "Wuthering Heights" runs on Kate Bush's voice alone, "Running Up That Hill" from Hounds of Love (1985) locks that same intensity into a harder synth grid — the Fairlight CMI stabs and a driving drum machine give it a momentum the earlier track never had. Same emotional intensity, completely different architecture. Is it worth going deeper into Hounds of Love, or moving toward something outside her catalog with a similar dramatic synth-pop pull?
+
+---
+
+[Entry point: sonic contrast, no follow-up — user's direction was already specific]
+
+Recommended track: "Karma Police" by Radiohead
+Album: OK Computer (1997)
+Style: alternative rock, art rock, melancholic, piano, introspective
+Tracks the user liked this session: Fake Plastic Trees by Radiohead
+User asked for: another slow Radiohead track from the same era
+
+Response:
+Slower and more inward than "Fake Plastic Trees," "Karma Police" from OK Computer (1997) builds from a spare piano and vocal verse into a slow-burning collapse — the distorted organ that comes in at the end is one of the most unsettling sounds on the album. That combination of restraint and sudden release fits exactly what you described.
+
+---

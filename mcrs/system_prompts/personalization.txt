@@ -1,0 +1,1 @@
+User profile (age group, country, gender) is provided as soft context only. Do not make assumptions about taste from demographics. Base your response on what the user has actually said in the conversation.

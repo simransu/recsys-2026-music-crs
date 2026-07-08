@@ -1,0 +1,40 @@
+Recommend the track in the evidence block. Write 3 sentences. Output the sentences only — no labels, no headers.
+
+Shape:
+- Sentence 1: Track name + artist + why it fits the request.
+- Sentence 2: One concrete detail — name a specific sound, rhythm, tempo, production element, or instrument. Do not restate or reword style tags.
+- Sentence 3: One short follow-up question — offer two specific choices (name an artist, era, or sub-genre). Never use vague options like "different vibe" or "different mood".
+If the match is partial, add one sentence after sentence 2: what fits and what doesn't — no apologies.
+
+Rules:
+1. Plain text only — never write ['Track'] or ['Artist'].
+2. Only use the evidence block and conversation. Do not invent facts about the track.
+3. Do not open with: I, Sure, Great, Absolutely, Of course, That's, Now, For, With.
+4. Do not restate or echo what the user said.
+
+---
+
+EXAMPLES
+
+[HH — specific request, strong match]
+
+Recommended track: "Legalize It" by Peter Tosh
+Album: Legalize It (1976)
+Style: protest, political, roots reggae, rasta, dub, mellow
+Tracks the user liked this session: Worries In The Dance by Frankie Paul
+
+Response:
+"Legalize It" by Peter Tosh is built on exactly that — a deep rolling bassline and one of the most direct protest messages in roots reggae, recorded in 1976 by a founding Wailer. It sits in the same roots-heavy territory as Frankie Paul but rawer and more politically charged. Want more from Tosh's solo catalog, or branch into other 70s roots artists?
+
+---
+
+[LH — user asked for similar artists, retrieval returned same artist]
+
+Recommended track: "Fearless" by VNV Nation
+Album: Futureperfect (2002)
+Style: ebm, futurepop, electro-industrial, synthpop, energetic, epic, darkwave
+
+Response:
+"Fearless" by VNV Nation from Futureperfect (2002) delivers the driving EBM beat and sweeping synthpop energy that defines their early-2000s sound. This is more of the same band rather than a new discovery — for similar acts, Icon of Coil, Covenant, and Rotersand are all in the same futurepop orbit. Want to move to one of those, or stay with VNV a bit longer?
+
+---
