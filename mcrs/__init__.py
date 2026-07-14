@@ -1,6 +1,5 @@
 import torch
 from .crs_baseline import CRS_BASELINE
-from .crs_two_tower import CRS_TWO_TOWER
 
 def load_crs_baseline(
     lm_type="meta-llama/Llama-3.2-1B-Instruct",
@@ -171,6 +170,7 @@ def load_crs_two_tower(
     dense_doc_prefix="",
     specificity_route_map=None,
 ):
+    from .crs_two_tower import CRS_TWO_TOWER
     return CRS_TWO_TOWER(
         lm_type=lm_type,
         retrieval_type=retrieval_type,

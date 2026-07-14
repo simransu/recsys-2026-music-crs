@@ -1,5 +1,4 @@
 from .embedding import EMBEDDING_RERANKER
-from .two_tower import TWO_TOWER_RERANKER
 
 
 def load_reranker_module(
@@ -36,6 +35,7 @@ def load_reranker_module(
             rrf_k=rrf_k,
         )
     elif reranker_type == "two_tower":
+        from .two_tower import TWO_TOWER_RERANKER
         return TWO_TOWER_RERANKER(
             user_embeddings_dataset_name=user_embeddings_dataset_name,
             track_embeddings_dataset_name=track_embeddings_dataset_name,
