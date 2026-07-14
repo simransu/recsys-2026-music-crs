@@ -1,6 +1,3 @@
-from .embedding import EMBEDDING_RERANKER
-
-
 def load_reranker_module(
         reranker_type: str,
         user_embeddings_dataset_name: str = "talkpl-ai/TalkPlayData-Challenge-User-Embeddings",
@@ -26,6 +23,7 @@ def load_reranker_module(
         rrf_k: int = 60,
     ):
     if reranker_type == "embedding":
+        from .embedding import EMBEDDING_RERANKER
         return EMBEDDING_RERANKER(
             user_embeddings_dataset_name=user_embeddings_dataset_name,
             track_embeddings_dataset_name=track_embeddings_dataset_name,

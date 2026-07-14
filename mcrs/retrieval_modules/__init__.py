@@ -1,6 +1,5 @@
 from .bm25 import BM25_MODEL
 from .bert import BERT_MODEL
-from .hybrid import HYBRID_MODEL
 from .multi_source import MULTI_SOURCE_MODEL
 
 def load_retrieval_module(
@@ -36,6 +35,7 @@ def load_retrieval_module(
             device=device,
         )
     elif retrieval_type == "hybrid":
+        from .hybrid import HYBRID_MODEL
         return HYBRID_MODEL(
             dataset_name,
             track_split_types,
