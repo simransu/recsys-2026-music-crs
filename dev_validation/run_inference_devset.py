@@ -62,13 +62,14 @@ def main(args):
         None. Results are saved to exp/inference/{tid}.json
 
     Processing:
-        - Loads model configuration from config/{tid}.yaml
+        - Loads model configuration from the config YAML sitting next to this script
         - Processes all sessions × 8 turns in batches
         - Tracks progress with tqdm progress bar
         - Saves comprehensive results for evaluation
     """
     os.makedirs("cache", exist_ok=True)
-    config = OmegaConf.load(f"config/{args.tid}.yaml")
+    config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), f"{args.tid}.yaml")
+    config = OmegaConf.load(config_path)
     music_crs = load_crs_baseline(
         lm_type=config.lm_type,
         retrieval_type=config.retrieval_type,
@@ -259,8 +260,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--tid",
         type=str,
-        default="llama1b_bm25_testset",
-        help="Task identifier matching a config file (e.g., 'llama1b_bm25' loads config/llama1b_bm25.yaml)"
+        default="qwen3_8b_multi_source_devset",
+        help="Task identifier matching a config file next to this script (e.g., 'qwen3_8b_multi_source_devset' loads dev_validation/qwen3_8b_multi_source_devset.yaml)"
     )
     parser.add_argument(
         "--batch_size",

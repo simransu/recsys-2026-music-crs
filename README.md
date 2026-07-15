@@ -188,9 +188,6 @@ pip install --force-reinstall lm-format-enforcer
 ## Running Inference
 
 ```bash
-# Dev set
-python run_inference_devset.py --tid qwen3_8b_multi_source_devset --batch_size 10
-
 # Blind set
 python run_inference_blindset.py --tid qwen3_8b_multi_source_blindset_B --batch_size 10
 
@@ -269,21 +266,27 @@ mcrs/
 scripts/
 ├── train_lambdarank.py                    # LambdaRank training (LightGBM)
 ├── precompute_planner.py                  # Cache Qwen3-8B planner outputs
-├── evaluate_dev_ndcg.py                   # Dev set nDCG evaluation
 └── setup_pod.sh                           # RunPod bootstrap script
 
 experiments/                               # Explored but NOT used in the final submitted pipeline
 ├── finetune_biencoder.py                  # Qwen3-0.6B bi-encoder fine-tuning (experiment)
 └── finetuned_dense.py                     # Fine-tuned Qwen3-0.6B retrieval inference (experiment)
 
-config/                                    # YAML inference + training configs
+dev_validation/                            # Local-only validation against the labeled dev set.
+│                                           # Not part of the graded pipeline (dev has no role in
+│                                           # Blind-B inference or the training reproduction check) —
+│                                           # kept only so you can sanity-check a from-scratch
+│                                           # LambdaRank retrain before trusting blind predictions.
+├── run_inference_devset.py                # Dev set inference entry point
 ├── qwen3_8b_multi_source_devset.yaml      # Dev config
+└── evaluate_dev_ndcg.py                   # Dev set nDCG evaluation
+
+config/                                    # YAML inference + training configs
 ├── qwen3_8b_multi_source_blindset_A.yaml  # Blind A config
 ├── qwen3_8b_multi_source_blindset_B.yaml  # Blind B config
 ├── lambdarank_training.yaml               # LambdaRank training config
 └── ...                                    # Additional configs
 
-run_inference_devset.py                    # Dev set inference entry point
 run_inference_blindset.py                  # Blind set inference entry point
 pyproject.toml                            # Package definition and dependencies
 ```
