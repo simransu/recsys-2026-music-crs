@@ -134,7 +134,7 @@ Template design emphasizes natural language, avoids rigid list formatting, and i
 
 ---
 
-## Experiment: Fine-Tuned Bi-Encoder (`scripts/finetune_biencoder.py`)
+## Experiment: Fine-Tuned Bi-Encoder (`experiments/finetune_biencoder.py`)
 
 > **Note:** This was an experiment conducted during development. The fine-tuned bi-encoder was **not used in the final submission** — the submitted system uses only the retrieval sources listed above.
 
@@ -145,7 +145,7 @@ We fine-tuned `Qwen/Qwen3-Embedding-0.6B` as a query encoder against **frozen pr
 - **Loss**: In-batch negatives + hard negatives via InfoNCE
 - **Key implementation detail**: Qwen3 is a causal LM — must use **last-token pooling**, not CLS, for embeddings
 
-**Result**: On a 100-session held-out mini devset, the fine-tuned retriever contributed +3 unique candidates at the pool level (additive over all other sources), raising pool recall from 0.62 → 0.64. The inference module is in `mcrs/retrieval_modules/finetuned_dense.py`.
+**Result**: On a 100-session held-out mini devset, the fine-tuned retriever contributed +3 unique candidates at the pool level (additive over all other sources), raising pool recall from 0.62 → 0.64. The inference module is in `experiments/finetuned_dense.py`. Neither the training script nor the inference module is wired into `CRS_BASELINE` — they live under `experiments/` and are not part of the submitted pipeline.
 
 ---
 
@@ -220,20 +220,10 @@ python scripts/train_lambdarank.py \
   --last_n_turns 1
 ```
 
-### Two-Tower Reranker (baseline)
-
-```bash
-python train_two_tower_reranker.py \
-  --output_path ./cache/two_tower_reranker.pt \
-  --retrieval_device cpu \
-  --batch_size 256 \
-  --epochs 5
-```
-
 ### Fine-Tune Bi-Encoder (experiment)
 
 ```bash
-python scripts/finetune_biencoder.py \
+python experiments/finetune_biencoder.py \
   --epochs 5 \
   --batch_size 16 \
   --lr 2e-5 \
@@ -250,25 +240,20 @@ Checkpoints saved to `./cache/finetuned_biencoder/`, best checkpoint to `./cache
 ```
 mcrs/
 ├── crs_baseline.py                        # Main CRS class wiring all components
-├── crs_two_tower.py                       # Two-tower variant
 ├── db_item/
 │   └── music_catalog.py                   # Track metadata access
 ├── db_user/
 │   └── user_profile.py                    # User profile access
 ├── lm_modules/
-│   ├── qwen3.py                           # Qwen3-8B: planner + response generator
-│   └── llama.py                           # Llama-3.2-1B (baseline)
-├── reranker_modules/
-│   ├── two_tower.py                       # Two-tower DCN reranker
-│   └── embedding.py
+│   └── qwen3.py                           # Qwen3-8B: planner + response generator
+├── reranker_modules/                      # LambdaRank is loaded directly in crs_baseline.py;
+│                                           # this package is currently unused by the submitted pipeline
 ├── retrieval_modules/
 │   ├── bm25.py                            # Weighted BM25
 │   ├── bert.py                            # Dense retrieval (BGE)
 │   ├── qwen3_dense.py                     # Zero-shot Qwen3-Embedding dense retrieval
-│   ├── finetuned_dense.py                 # Fine-tuned Qwen3-0.6B retrieval (experiment)
 │   ├── user_to_item.py                    # CF/BPR user-to-item
 │   ├── item_to_item.py                    # Multimodal I2I expansion
-│   ├── hybrid.py                          # BM25 + dense hybrid
 │   ├── session_cooccurrence.py            # Session co-occurrence signals
 │   ├── train_thought_bm25.py              # BM25 over training rationales
 │   └── multi_source.py                    # RRF fusion of BM25+BGE+BPR
@@ -283,20 +268,23 @@ mcrs/
 
 scripts/
 ├── train_lambdarank.py                    # LambdaRank training (LightGBM)
-├── finetune_biencoder.py                  # Qwen3-0.6B bi-encoder fine-tuning (experiment)
 ├── precompute_planner.py                  # Cache Qwen3-8B planner outputs
 ├── evaluate_dev_ndcg.py                   # Dev set nDCG evaluation
 └── runpod_init.sh                         # RunPod bootstrap script
 
+experiments/                               # Explored but NOT used in the final submitted pipeline
+├── finetune_biencoder.py                  # Qwen3-0.6B bi-encoder fine-tuning (experiment)
+└── finetuned_dense.py                     # Fine-tuned Qwen3-0.6B retrieval inference (experiment)
+
 config/                                    # YAML inference + training configs
-├── qwen3_8b_multi_source_devset.yaml      # Primary dev config
+├── qwen3_8b_multi_source_devset.yaml      # Dev config
 ├── qwen3_8b_multi_source_blindset_A.yaml  # Blind A config
+├── qwen3_8b_multi_source_blindset_B.yaml  # Blind B config
 ├── lambdarank_training.yaml               # LambdaRank training config
 └── ...                                    # Additional configs
 
 run_inference_devset.py                    # Dev set inference entry point
 run_inference_blindset.py                  # Blind set inference entry point
-train_two_tower_reranker.py               # Two-tower training entry point
 pyproject.toml                            # Package definition and dependencies
 ```
 

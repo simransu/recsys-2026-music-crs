@@ -32,30 +32,5 @@ def load_reranker_module(
             beta=beta,
             rrf_k=rrf_k,
         )
-    elif reranker_type == "two_tower":
-        from .two_tower import TWO_TOWER_RERANKER
-        return TWO_TOWER_RERANKER(
-            user_embeddings_dataset_name=user_embeddings_dataset_name,
-            track_embeddings_dataset_name=track_embeddings_dataset_name,
-            item_db_name=item_db_name,
-            user_db_name=user_db_name,
-            track_split_types=track_split_types,
-            user_split_types=user_split_types,
-            corpus_types=corpus_types,
-            embedding_type=embedding_type,
-            checkpoint_path=checkpoint_path,
-            device=device,
-            projection_dim=projection_dim,
-            tower_hidden_dim=tower_hidden_dim,
-            deep_hidden_dim=deep_hidden_dim,
-            dcn_low_rank_dim=dcn_low_rank_dim,
-            dcn_num_layers=dcn_num_layers,
-            dcn_num_experts=dcn_num_experts,
-            dropout=dropout,
-            temperature=temperature,
-            alpha=alpha,
-            beta=beta,
-            rrf_k=rrf_k,
-        )
     else:
         raise ValueError(f"Unsupported reranker type: {reranker_type}")

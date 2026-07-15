@@ -6,7 +6,7 @@ import os
 import json
 import torch
 import argparse
-from mcrs import load_crs_baseline, load_crs_two_tower
+from mcrs import load_crs_baseline
 from datasets import load_dataset
 from tqdm import tqdm
 from typing import List, Dict, Any, Tuple
@@ -69,8 +69,7 @@ def main(args):
     """
     os.makedirs("cache", exist_ok=True)
     config = OmegaConf.load(f"config/{args.tid}.yaml")
-    loader = load_crs_two_tower if config.get("reranker_type", None) == "two_tower" else load_crs_baseline
-    music_crs = loader(
+    music_crs = load_crs_baseline(
         lm_type=config.lm_type,
         retrieval_type=config.retrieval_type,
         item_db_name=config.item_db_name,
