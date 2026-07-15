@@ -270,7 +270,7 @@ scripts/
 ├── train_lambdarank.py                    # LambdaRank training (LightGBM)
 ├── precompute_planner.py                  # Cache Qwen3-8B planner outputs
 ├── evaluate_dev_ndcg.py                   # Dev set nDCG evaluation
-└── runpod_init.sh                         # RunPod bootstrap script
+└── setup_pod.sh                           # RunPod bootstrap script
 
 experiments/                               # Explored but NOT used in the final submitted pipeline
 ├── finetune_biencoder.py                  # Qwen3-0.6B bi-encoder fine-tuning (experiment)
