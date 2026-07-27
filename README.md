@@ -52,7 +52,7 @@ mkdir -p cache
 cp models/lambdarank_model_blindsetB.txt cache/lambdarank_model.txt
 ```
 
-`models/lambdarank_model_blindsetB.txt` is the exact LightGBM LambdaRank model behind the reported Blind B score, checked into this repo so you do not have to retrain to reproduce the submission. Inference reads the reranker from `./cache/lambdarank_model.txt` (see `lambdarank_model_path` in `config/qwen3_8b_multi_source_blindset_B.yaml`), so this copy is all that is needed.
+`models/lambdarank_model_blindsetB.txt` is the exact LightGBM LambdaRank model behind the reported Blind B score, checked into this repo (and mirrored on [HuggingFace](https://huggingface.co/simransu/recsys2026-minimaestro-lambdarank)) so you do not have to retrain to reproduce the submission. Inference reads the reranker from `./cache/lambdarank_model.txt` (see `lambdarank_model_path` in `config/qwen3_8b_multi_source_blindset_B.yaml`), so this copy is all that is needed.
 
 **Option B — retrain the reranker from scratch.**
 
@@ -260,7 +260,11 @@ All datasets are from the [TalkPlay HuggingFace collection](https://huggingface.
 
 ## Data & License
 
-The TalkPlay challenge datasets (licensed CC-BY-NC) and the base model weights (Qwen3-8B, Qwen3-Embedding) are downloaded at runtime from their gated HuggingFace sources listed under [Datasets](#datasets); none of them are redistributed in this repository. They are used here solely for the RecSys Challenge 2026. The only model committed to this repo, `models/lambdarank_model_blindsetB.txt`, is our own trained LightGBM reranker.
+**Code** in this repository is the authors' own work.
+
+**Data and base models.** The TalkPlay challenge datasets (licensed **CC-BY-NC**) and the base model weights (Qwen3-8B, Qwen3-Embedding, BGE) are downloaded at runtime from their gated HuggingFace sources listed under [Datasets](#datasets); none of them are redistributed here. They are used solely for the RecSys Challenge 2026.
+
+**Our trained weight.** The only model we release is our LightGBM reranker, `models/lambdarank_model_blindsetB.txt`, also mirrored on HuggingFace: [`simransu/recsys2026-minimaestro-lambdarank`](https://huggingface.co/simransu/recsys2026-minimaestro-lambdarank). Because it is derived from the CC-BY-NC challenge data, it is released under **CC-BY-NC-4.0** for non-commercial research and reproduction only. Please attribute the TalkPlay dataset and the RecSys Challenge 2026 organizers.
 
 ---
 
