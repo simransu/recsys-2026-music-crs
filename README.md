@@ -1,16 +1,18 @@
-# Music Conversational Recommender System — RecSys Challenge 2026
+# MiniMaestro: Conversational Music Recommender System (RecSys Challenge 2026)
 
-A two-stage conversational music recommender built for the [ACM RecSys Challenge 2026 (TalkPlay)](https://nlp4musa.github.io/music-crs-challenge/). The system combines multi-source candidate retrieval with LambdaRank reranking and uses Qwen3-8B for structured query planning and natural-language response generation.
+**Team Overfit & Chill.** MiniMaestro is a two-stage conversational music recommender built for the [ACM RecSys Challenge 2026 (TalkPlay)](https://nlp4musa.github.io/music-crs-challenge/). The system combines multi-source candidate retrieval with LambdaRank reranking and reuses a single open-weight Qwen3-8B model for both structured query planning and natural-language response generation.
 
 **Best results on the blind benchmarks:**
 
-| Metric | Blind A | Blind B |
-|--------|---------|---------|
-| Composite score | **0.5296** | **0.4800** |
-| nDCG@20 | 0.4124 | — |
-| Catalog Diversity | 0.0320 | — |
-| Lexical Diversity | 0.7273 | — |
-| LLM-Judge | 4.30 / 5.0 | — |
+| Metric | Blind A | Blind B (graded) |
+|--------|---------|------------------|
+| Composite score | **0.53** | **0.48** |
+| nDCG@20 | 0.41 | 0.33 |
+| Catalog Diversity | 0.03 | 0.03 |
+| Lexical Diversity | 0.73 | 0.73 |
+| LLM-Judge | 4.30 / 5.0 | 4.15 / 5.0 |
+
+Blind B is the graded set that determined the final ranking; its breakdown matches Table 2 of the paper.
 
 Composite = 0.50×nDCG@20 + 0.10×CatalogDiversity + 0.10×LexicalDiversity + 0.30×LLM-Judge
 
@@ -106,11 +108,12 @@ User conversation turn
 │  BGE dense retrieval            → up to 400 candidates  │
 │  BPR user-to-item (CF)          → up to 400 candidates  │
 │  Item-to-item embeddings        → up to 400 candidates  │
+│    ├─ CF-BPR embeddings                                 │
 │    ├─ Image (SigLIP2)                                   │
 │    ├─ Audio (LAION-CLAP)                                │
-│    ├─ Lyrics (Qwen3-Embedding)                          │
+│    ├─ Metadata (Qwen3-Embedding)                        │
 │    ├─ Attributes (Qwen3-Embedding)                      │
-│    └─ CF-BPR embeddings                                 │
+│    └─ Lyrics (Qwen3-Embedding)                          │
 │  Artist / album shortcut retrieval                      │
 │  Entity matching                                        │
 │  Session co-occurrence                                  │
@@ -152,7 +155,7 @@ User conversation turn
 | `bert.py` | Dense retrieval using `BAAI/bge-small-en-v1.5` sentence embeddings |
 | `qwen3_dense.py` | Zero-shot dense retrieval using `Qwen/Qwen3-Embedding-0.6B` |
 | `user_to_item.py` | Collaborative filtering via BPR user embeddings (warm user personalization) |
-| `item_to_item.py` | Multimodal I2I expansion: image (SigLIP2), audio (LAION-CLAP), lyrics, attributes, CF-BPR |
+| `item_to_item.py` | Multimodal I2I expansion over six precomputed embedding spaces: CF-BPR, image (SigLIP2), audio (LAION-CLAP), and three Qwen3-Embedding text views (metadata, attributes, lyrics) |
 | `session_cooccurrence.py` | Session-level co-occurrence signals from training data |
 | `train_thought_bm25.py` | BM25 over training-set rationale/thought annotations |
 | `multi_source.py` | Internally fuses BM25 + BGE + BPR via RRF to produce a base candidate list; all sources are then unioned for LambdaRank |
