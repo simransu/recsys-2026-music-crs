@@ -2,6 +2,8 @@
 
 **Team Overfit & Chill.** MiniMaestro is a conversational music recommender built for the [ACM RecSys Challenge 2026 (TalkPlay)](https://nlp4musa.github.io/music-crs-challenge/). Each turn, it plans a structured query, pools candidates from multiple retrieval sources, reranks them with a LambdaRank model, and generates a natural-language response, reusing a single open-weight Qwen3-8B model for both the planning and generation stages.
 
+> **Paper:** *MiniMaestro: Resource-Conscious Conversational Music Recommendation with a Single Open-Weight 8B Model.* Simran Sundrani and Mohan Bhambhani (Team Overfit & Chill), RecSys Challenge 2026: Music-CRS (TalkPlay).
+
 **Best results on the blind benchmarks:**
 
 | Metric | Blind A | Blind B (graded) |
@@ -25,18 +27,21 @@ These steps regenerate the `prediction.json` we submitted for Blind Dataset B. T
 ### 1. Environment and data
 
 ```bash
-# Clone and install
+# Clone
 git clone https://github.com/simransu/recsys-2026-music-crs.git
 cd recsys-2026-music-crs
-uv pip install -e .          # or: pip install -e .
-pip install flash-attn --no-build-isolation   # GPU only, optional but faster
+
+# Create an environment and install (Python 3.10+)
+uv venv .venv --python=3.10 && source .venv/bin/activate
+uv pip install -e .                             # or: pip install -e .
+pip install flash-attn --no-build-isolation     # GPU only, optional but faster
 
 # Authenticate for the gated TalkPlay HuggingFace datasets
-export HF_HOME=/path/to/hf_cache
+export HF_HOME=/path/to/hf_cache                # any writable cache dir
 huggingface-cli login
 ```
 
-All data (conversations, track/user metadata, precomputed track/user embeddings) is pulled from the [TalkPlay HuggingFace collection](https://huggingface.co/collections/talkpl-ai/talkplay-data-challenge) listed under [Datasets](#datasets); nothing else is required.
+All data (conversations, track/user metadata, precomputed track/user embeddings) is pulled from the [TalkPlay HuggingFace collection](https://huggingface.co/collections/talkpl-ai/talkplay-data-challenge) listed under [Datasets](#datasets); nothing else is required. If the structured-JSON query planner errors on a fresh GPU box, force-reinstall its dependency: `pip install --force-reinstall lm-format-enforcer`.
 
 ### 2. LambdaRank reranker — use the shipped model *or* retrain
 
@@ -71,6 +76,17 @@ python run_inference_blindset.py \
 ```
 
 For Blind A, use `--tid qwen3_8b_multi_source_blindset_A --eval_dataset blindset_A`. The `--eval_dataset` flag is required and must match the config, since it selects both the input split and the output directory.
+
+Optionally, confirm no response came back empty:
+
+```bash
+python -c "
+import json
+d = json.load(open('exp/inference/blindset_B/qwen3_8b_multi_source_blindset_B.json'))
+empty = [e['session_id'][:8] for e in d if not e['predicted_response'].strip()]
+print(f'{len(empty)} empty responses:', empty)
+"
+```
 
 ### 4. Build the submission archive
 
@@ -218,6 +234,14 @@ We fine-tuned `Qwen/Qwen3-Embedding-0.6B` as a query encoder against **frozen pr
 
 **Result**: On a 100-session held-out mini devset, the fine-tuned retriever contributed +3 unique candidates at the pool level (additive over all other sources), raising pool recall from 0.62 → 0.64. The inference module is in `experiments/finetuned_dense.py`. Neither the training script nor the inference module is wired into `CRS_BASELINE` — they live under `experiments/` and are not part of the submitted pipeline.
 
+To reproduce the experiment (checkpoints saved to `./cache/finetuned_biencoder/`, best to `./cache/finetuned_biencoder/best/`):
+
+```bash
+python experiments/finetune_biencoder.py \
+  --epochs 5 --batch_size 16 --lr 2e-5 \
+  --goal_filter --last_n_turns 1
+```
+
 ---
 
 ## Datasets
@@ -234,80 +258,9 @@ All datasets are from the [TalkPlay HuggingFace collection](https://huggingface.
 
 ---
 
-## Setup
+## Data & License
 
-```bash
-uv venv .venv --python=3.10
-source .venv/bin/activate
-uv pip install -e .
-
-# On GPU machines
-pip install flash-attn --no-build-isolation
-```
-
-For GPU (RunPod):
-
-```bash
-export HF_HOME=/workspace/.cache/huggingface
-huggingface-cli login
-pip install -e .
-pip install --force-reinstall lm-format-enforcer
-```
-
----
-
-## Running Inference
-
-> To reproduce the exact submitted `prediction.json` end-to-end, follow [Reproducing the Submission](#reproducing-the-submission-blind-b) above. The commands below are the individual steps.
-
-```bash
-# Blind set (--eval_dataset is required and selects the split + output dir)
-python run_inference_blindset.py \
-  --tid qwen3_8b_multi_source_blindset_B \
-  --eval_dataset blindset_B \
-  --batch_size 10 --retrieval_batch_size 10
-
-# Verify no empty responses
-python -c "
-import json
-d = json.load(open('exp/inference/blindset_B/qwen3_8b_multi_source_blindset_B.json'))
-empty = [e['session_id'][:8] for e in d if not e['predicted_response'].strip()]
-print(f'{len(empty)} empty responses:', empty)
-"
-```
-
----
-
-## Training
-
-### LambdaRank Reranker
-
-```bash
-# Step 1: precompute planner queries (one-time)
-python scripts/precompute_planner.py --config config/lambdarank_training.yaml
-
-# Step 2: train LambdaRank (writes ./cache/lambdarank_model.txt)
-python scripts/train_lambdarank.py \
-  --config config/lambdarank_training.yaml \
-  --goal_filter \
-  --last_n_turns 1 \
-  --num_rounds 1000
-```
-
-> The exact model behind the reported Blind B score is committed at `models/lambdarank_model_blindsetB.txt`. To skip retraining, copy it into place: `cp models/lambdarank_model_blindsetB.txt cache/lambdarank_model.txt`.
-
-### Fine-Tune Bi-Encoder (experiment)
-
-```bash
-python experiments/finetune_biencoder.py \
-  --epochs 5 \
-  --batch_size 16 \
-  --lr 2e-5 \
-  --goal_filter \
-  --last_n_turns 1
-```
-
-Checkpoints saved to `./cache/finetuned_biencoder/`, best checkpoint to `./cache/finetuned_biencoder/best/`.
+The TalkPlay challenge datasets (licensed CC-BY-NC) and the base model weights (Qwen3-8B, Qwen3-Embedding) are downloaded at runtime from their gated HuggingFace sources listed under [Datasets](#datasets); none of them are redistributed in this repository. They are used here solely for the RecSys Challenge 2026. The only model committed to this repo, `models/lambdarank_model_blindsetB.txt`, is our own trained LightGBM reranker.
 
 ---
 

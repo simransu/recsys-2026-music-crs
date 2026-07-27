@@ -9,7 +9,7 @@ authors = [
     { name = "Music CRS Baselines Team" },
 ]
 description = "Music Conversational Recommender System Baselines"
-readme = "readme.md"
+readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
