@@ -1,6 +1,6 @@
 # MiniMaestro: Conversational Music Recommender System (RecSys Challenge 2026)
 
-**Team Overfit & Chill.** MiniMaestro is a two-stage conversational music recommender built for the [ACM RecSys Challenge 2026 (TalkPlay)](https://nlp4musa.github.io/music-crs-challenge/). The system combines multi-source candidate retrieval with LambdaRank reranking and reuses a single open-weight Qwen3-8B model for both structured query planning and natural-language response generation.
+**Team Overfit & Chill.** MiniMaestro is a conversational music recommender built for the [ACM RecSys Challenge 2026 (TalkPlay)](https://nlp4musa.github.io/music-crs-challenge/). Each turn, it plans a structured query, pools candidates from multiple retrieval sources, reranks them with a LambdaRank model, and generates a natural-language response, reusing a single open-weight Qwen3-8B model for both the planning and generation stages.
 
 **Best results on the blind benchmarks:**
 
@@ -102,12 +102,12 @@ User conversation turn
            ▼
 ┌─────────────────────────────────────────────────────────┐
 │              Multi-Source Candidate Retrieval           │
-│                    (topk = 400 each)                    │
 │                                                         │
-│  BM25 (weighted fields)         → up to 400 candidates  │
-│  BGE dense retrieval            → up to 400 candidates  │
-│  BPR user-to-item (CF)          → up to 400 candidates  │
-│  Item-to-item embeddings        → up to 400 candidates  │
+│  BM25 (weighted fields)                                 │
+│  BGE dense retrieval                                    │
+│  Qwen3 dense retrieval                                  │
+│  BPR user-to-item (CF)                                  │
+│  Item-to-item embeddings                                │
 │    ├─ CF-BPR embeddings                                 │
 │    ├─ Image (SigLIP2)                                   │
 │    ├─ Audio (LAION-CLAP)                                │
@@ -119,7 +119,7 @@ User conversation turn
 │  Session co-occurrence                                  │
 │  Train-thought BM25                                     │
 │                                                         │
-│  All source lists unioned → ~2000+ unique candidates    │
+│  All source lists unioned into one candidate pool       │
 └──────────────────────────┬──────────────────────────────┘
                            │  union of all source lists
                            ▼
@@ -130,7 +130,6 @@ User conversation turn
           │  Features per candidate:               │
           │  · rank in each source list            │
           │  · presence flag per source (binary)   │
-          │  · source consensus count              │
           │  · artist/album match to anchors       │
           │  · entity match signals                │
           │  · turn number, anchor count           │
@@ -160,7 +159,7 @@ User conversation turn
 | `train_thought_bm25.py` | BM25 over training-set rationale/thought annotations |
 | `multi_source.py` | Internally fuses BM25 + BGE + BPR via RRF to produce a base candidate list; all sources are then unioned for LambdaRank |
 
-Each source retrieves up to 400 candidates independently. All source lists are unioned into a single candidate set (~2000+ unique tracks) passed to LambdaRank. LambdaRank uses each source's per-candidate rank as a feature — there is no RRF step in the final ranking path.
+Each source retrieves candidates independently. All source lists are unioned into a single candidate pool passed to LambdaRank. LambdaRank uses each source's per-candidate rank as a feature; there is no RRF step in the final ranking path.
 
 ### 2. LLM Query Planner (`mcrs/lm_modules/qwen3.py`)
 
@@ -185,11 +184,10 @@ Plans are **precomputed and cached** before training/inference to avoid running 
 
 ### 3. LambdaRank Reranker (`scripts/train_lambdarank.py`)
 
-A LightGBM LambdaRank model trained on the dev set with per-query groups. All source candidate lists are unioned into a single pool (~2000+ tracks per query) and LambdaRank scores every candidate using features:
+A LightGBM LambdaRank model trained on the challenge-provided conversations, one example per session (the session's last `MOVES_TOWARD_GOAL` recommendation turn, `--last_n_turns 1`), with per-query groups. Each example's candidate pool is the union of that turn's multi-source retrieval output, with the recommended track labeled positive and every other pooled candidate labeled negative; this yields 24M+ (query, candidate) pairs across ~13K groups. LambdaRank scores every candidate using features:
 
-- Rank in each source's individual list (BM25, BGE, BPR, each I2I variant, artist shortcut, entity, etc.)
-- Source presence flag (binary) per source
-- Source consensus count (how many sources returned this candidate)
+- Rank in each source's individual list (BM25, BGE, Qwen3 dense, BPR, each I2I variant, etc.)
+- Presence flag (binary) per source, including artist shortcut, album shortcut, and entity match
 - Artist/album match to anchor tracks mentioned in conversation
 - Entity match signals (track name, artist, album appearing in query)
 - Turn number and number of anchor tracks
@@ -213,7 +211,7 @@ Template design emphasizes natural language, avoids rigid list formatting, and i
 
 We fine-tuned `Qwen/Qwen3-Embedding-0.6B` as a query encoder against **frozen precomputed track embeddings** to explore whether a task-specific dense retriever could improve candidate recall:
 
-- **Training data**: ~13k (query, positive track) pairs from goal-annotated dev set turns
+- **Training data**: ~13k (query, positive track) pairs from goal-annotated training turns
 - **Hard negatives**: tracks retrieved by the current system (BM25, BGE, I2I, artist shortcut) that are NOT the ground truth
 - **Loss**: In-batch negatives + hard negatives via InfoNCE
 - **Key implementation detail**: Qwen3 is a causal LM — must use **last-token pooling**, not CLS, for embeddings
