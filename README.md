@@ -16,6 +16,76 @@ Composite = 0.50×nDCG@20 + 0.10×CatalogDiversity + 0.10×LexicalDiversity + 0.
 
 ---
 
+## Reproducing the Submission (Blind B)
+
+These steps regenerate the `prediction.json` we submitted for Blind Dataset B. They are written to be environment-agnostic, so adapt the paths to wherever you run them (local CUDA machine, RunPod, or any GPU host). A CUDA GPU with roughly 24 GB of memory is recommended to hold the Qwen3-8B model; the full run is I/O and GPU bound, not something that finishes in a few minutes.
+
+### 1. Environment and data
+
+```bash
+# Clone and install
+git clone https://github.com/simransu/recsys-2026-music-crs.git
+cd recsys-2026-music-crs
+uv pip install -e .          # or: pip install -e .
+pip install flash-attn --no-build-isolation   # GPU only, optional but faster
+
+# Authenticate for the gated TalkPlay HuggingFace datasets
+export HF_HOME=/path/to/hf_cache
+huggingface-cli login
+```
+
+All data (conversations, track/user metadata, precomputed track/user embeddings) is pulled from the [TalkPlay HuggingFace collection](https://huggingface.co/collections/talkpl-ai/talkplay-data-challenge) listed under [Datasets](#datasets); nothing else is required.
+
+### 2. LambdaRank reranker — use the shipped model *or* retrain
+
+**Option A — use the shipped model (reproduces the exact reranker we submitted).**
+
+```bash
+mkdir -p cache
+cp models/lambdarank_model_blindsetB.txt cache/lambdarank_model.txt
+```
+
+`models/lambdarank_model_blindsetB.txt` is the exact LightGBM LambdaRank model behind the reported Blind B score, checked into this repo so you do not have to retrain to reproduce the submission. Inference reads the reranker from `./cache/lambdarank_model.txt` (see `lambdarank_model_path` in `config/qwen3_8b_multi_source_blindset_B.yaml`), so this copy is all that is needed.
+
+**Option B — retrain the reranker from scratch.**
+
+```bash
+# Cache the 8B planner outputs once, then train
+python scripts/precompute_planner.py --config config/lambdarank_training.yaml
+python scripts/train_lambdarank.py \
+  --config config/lambdarank_training.yaml \
+  --goal_filter --last_n_turns 1 --num_rounds 1000
+# writes ./cache/lambdarank_model.txt (the path inference reads)
+```
+
+### 3. Run Blind B inference
+
+```bash
+python run_inference_blindset.py \
+  --tid qwen3_8b_multi_source_blindset_B \
+  --eval_dataset blindset_B \
+  --batch_size 10 --retrieval_batch_size 10
+# writes exp/inference/blindset_B/qwen3_8b_multi_source_blindset_B.json
+```
+
+For Blind A, use `--tid qwen3_8b_multi_source_blindset_A --eval_dataset blindset_A`. The `--eval_dataset` flag is required and must match the config, since it selects both the input split and the output directory.
+
+### 4. Build the submission archive
+
+```bash
+cp exp/inference/blindset_B/qwen3_8b_multi_source_blindset_B.json prediction.json
+zip submission.zip prediction.json    # prediction.json sits at the archive root
+```
+
+### Reproducibility note
+
+Scores will land close to the reported numbers but **will not reproduce bit-for-bit**, by design. Two sources of run-to-run variation are expected:
+
+- **Stochastic LLM generation.** Query planning and response generation both run an 8B model with sampling (temperature 0.7, top-p 0.9), so the planner's structured queries and the final natural-language responses can differ slightly between runs. That shifts the retrieval pools and the reranked lists, so nDCG@20 and the LLM-as-a-Judge score fluctuate within a small band rather than matching exactly.
+- **Reranker retraining.** LambdaRank training uses no held-out split and no early stopping, so a from-scratch retrain (Option B) can settle on a slightly different model than the one we shipped. Use Option A (the checked-in model) to reproduce the exact reranker; use Option B only if you want to verify the training pipeline itself.
+
+---
+
 ## System Architecture
 
 ```
@@ -187,9 +257,14 @@ pip install --force-reinstall lm-format-enforcer
 
 ## Running Inference
 
+> To reproduce the exact submitted `prediction.json` end-to-end, follow [Reproducing the Submission](#reproducing-the-submission-blind-b) above. The commands below are the individual steps.
+
 ```bash
-# Blind set
-python run_inference_blindset.py --tid qwen3_8b_multi_source_blindset_B --batch_size 10
+# Blind set (--eval_dataset is required and selects the split + output dir)
+python run_inference_blindset.py \
+  --tid qwen3_8b_multi_source_blindset_B \
+  --eval_dataset blindset_B \
+  --batch_size 10 --retrieval_batch_size 10
 
 # Verify no empty responses
 python -c "
@@ -210,12 +285,15 @@ print(f'{len(empty)} empty responses:', empty)
 # Step 1: precompute planner queries (one-time)
 python scripts/precompute_planner.py --config config/lambdarank_training.yaml
 
-# Step 2: train LambdaRank
+# Step 2: train LambdaRank (writes ./cache/lambdarank_model.txt)
 python scripts/train_lambdarank.py \
   --config config/lambdarank_training.yaml \
   --goal_filter \
-  --last_n_turns 1
+  --last_n_turns 1 \
+  --num_rounds 1000
 ```
+
+> The exact model behind the reported Blind B score is committed at `models/lambdarank_model_blindsetB.txt`. To skip retraining, copy it into place: `cp models/lambdarank_model_blindsetB.txt cache/lambdarank_model.txt`.
 
 ### Fine-Tune Bi-Encoder (experiment)
 
@@ -262,6 +340,9 @@ mcrs/
     ├── template_conversational.txt
     ├── personalization.txt
     └── roleplay.txt
+
+models/
+└── lambdarank_model_blindsetB.txt         # Shipped LightGBM reranker (reproduces Blind B)
 
 scripts/
 ├── train_lambdarank.py                    # LambdaRank training (LightGBM)
